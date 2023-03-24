@@ -1,0 +1,79 @@
+<script lang="ts">
+
+  import Board from './Board.svelte'
+  import Deck from './Deck.svelte'
+  import Solution from './Solution.svelte';
+  //import { Confetti } from "svelte-confetti";
+
+
+  // Deck start full
+  let deck: CardData[] = [
+    {id: 0, flipped: false, front: "blueberry", back: "peach"},
+    {id: 1, flipped: false, front: "blueberry", back: "apple"},
+    {id: 2, flipped: false, front: "blueberry", back: "lemon"},
+    {id: 3, flipped: false, front: "peach", back: "orange"},
+    {id: 4, flipped: false, front: "peach", back: "cherry"},
+    {id: 5, flipped: false, front: "apple", back: "lemon"},
+    {id: 6, flipped: false, front: "apple", back: "orange"},
+    {id: 7, flipped: false, front: "lemon", back: "cherry"},
+    {id: 8, flipped: false, front: "orange", back: "cherry"},
+  ];
+
+  // Cards starts empty
+  let cards: (CardData|null)[] = [
+    null, null, null,
+    null, null, null,
+    null, null, null,
+  ];
+
+  let solution: CardData[] = [
+    {id: 0, flipped: false, front: "blueberry", back: "peach"},
+    {id: 1, flipped: false, front: "blueberry", back: "apple"},
+    {id: 2, flipped: false, front: "blueberry", back: "lemon"},
+    {id: 3, flipped: false, front: "peach", back: "orange"},
+    {id: 4, flipped: false, front: "peach", back: "cherry"},
+    {id: 5, flipped: false, front: "apple", back: "lemon"},
+    {id: 6, flipped: false, front: "apple", back: "orange"},
+    {id: 7, flipped: false, front: "lemon", back: "cherry"},
+    {id: 8, flipped: false, front: "orange", back: "cherry"},
+  ];
+
+  shuffle(deck);
+  shuffle(solution);
+
+  function shuffle(array: CardData[]) {
+    for(let i = array.length-1; i > 0; i--){
+      const j = Math.floor(Math.random() * (i+1));
+      [array[i], array[j]] = [array[j],array[i]];
+    }
+    for(let i = 0; i < array.length; i++){
+      if(Math.floor(Math.random() * 2) == 0){
+        array[i].flipped = true;
+      }
+    }
+  }
+
+  let win: boolean;
+  function setWin() {
+    win = true;
+  }
+
+</script>
+{#if !win}
+<!--<button on:click={setWin}>Click to win!</button>-->
+<Solution cards={solution}/>
+<Deck cards={deck} />
+<Board bind:cards bind:deck solution={solution} bind:win/>
+{:else}
+<!--<div class="row" style="padding-top: 150px">
+  <Confetti infinite delay={[0, 1500]} />
+</div> -->
+<h1>
+  すごい
+</h1>
+{/if}
+
+<style>
+
+
+</style>
