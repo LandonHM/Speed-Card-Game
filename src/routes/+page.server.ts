@@ -16,7 +16,7 @@ export const actions = {
     login: async ({cookies, request}) => {
         const data = await request.formData();
         let m: Message = {
-            action: "ping", 
+            action: "ping",
             user: String(data.get('username')),
             lobbyname: String(data.get('lobbyname')),
             password: String(data.get('password')),
@@ -48,18 +48,39 @@ export const actions = {
 } satisfies Actions; */
 
 import type { PageServerLoad, Actions } from './$types';
- 
+import { redirect } from '@sveltejs/kit';
+
 export const load = (async ({ cookies }) => {
-  const user = {
-    id: cookies.get('sessionid'),
-    name: "pog"
+  if(cookies.get('result') == 'true') {
+    throw redirect (301, `/game/${cookies.get('lobbyname')}`);
+  }else{
+    return {
+        lobbyname: cookies.get('lobbyname')
+    }
   }
-  return { user };
 }) satisfies PageServerLoad;
- 
+
 export const actions = {
   login: async ({ cookies, request }) => {
-    cookies.set('sessionid', "5");
-    return { success: true };
+    const data = await request.formData();
+    let message: Message = {
+        action: "ping",
+        user: String(data.get('username')),
+        lobbyname: String(data.get('lobbyname')),
+        password: String(data.get('password')),
+        message: '',
+    }
+    cookies.set('action', String(message.action));
+    cookies.set('user', String(message.user));
+    cookies.set('lobbyname', String(message.lobbyname));
+    cookies.set('password', String(message.password));
+    let success: boolean = true;
+    if(success){
+        cookies.set('result', 'true');
+        return { success: true };
+    }else{
+        cookies.set('result', 'false');
+        return { success: false };
+    }
   }
 } satisfies Actions;

@@ -7,23 +7,6 @@
 </script>
 
 <form method="POST" action="?/login">
-  <label>
-    Email
-    <input name="email" type="text">
-  </label>
-  <label>
-    Password
-    <input name="password" type="password">
-  </label>
-  <button>Log in</button>
-</form>
-{#if form?.success}
-<p>logged in as {data.user.name} from session {data.user.id}</p>
-{/if}
-
-
-<!--
-<form method="POST" action="?/login">
   <div class="row">
   <label>
     Username
@@ -48,4 +31,6 @@
     </div>
 </form>
 
--->
+{#if !form?.success && data.lobbyname}
+<p>{data.lobbyname} not found.</p>
+{/if}

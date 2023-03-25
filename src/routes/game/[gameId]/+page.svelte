@@ -8,5 +8,5 @@
     //ws.send(S)
     console.log(data);
 </script>
-<h1> Data : {data.gameId}</h1>
+<h1> Data : {data}</h1>
 <Game />
