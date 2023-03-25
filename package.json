@@ -13,6 +13,7 @@
 		"@sveltejs/adapter-auto": "^2.0.0",
 		"@sveltejs/kit": "^1.13.0",
 		"@tsconfig/svelte": "^3.0.0",
+		"@types/ws": "^8.5.4",
 		"svelte": "^3.54.0",
 		"svelte-check": "^3.1.4",
 		"svelte-preprocess": "^5.0.3",
@@ -22,6 +23,7 @@
 	},
 	"type": "module",
 	"dependencies": {
-		"svelte-confetti": "^1.2.2"
+		"svelte-confetti": "^1.2.2",
+		"ws": "^8.13.0"
 	}
 }
