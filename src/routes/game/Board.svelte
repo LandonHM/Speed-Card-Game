@@ -2,16 +2,14 @@
 
   import CardPlace from './CardPlace.svelte'
 
-  // make card a stack and do deck properly that way logic will be consistant
   export let deck: CardData[];
   export let cards: (CardData|null)[];
   export let solution: CardData[];
   export let win: boolean;
-  // should probably use events but idk
+
   let moveCardId: number;
   let toCard: number = -1;
 
-  // Need to check win on card being flipped idk how tho
   $: moveCard(toCard)
 
   function moveCard(num: Number) {
@@ -73,7 +71,7 @@
 <div class="row">
   <div class="grid-container">
     {#each cards as cardData,i}
-    <CardPlace class="grid-item" id={i} bind:cardData bind:toCard bind:moveCardId />
+    <CardPlace class="grid-item" id={i} bind:cardData bind:toCard bind:moveCardId on:flipped={checkWin} />
     {/each}
   </div>
 </div>

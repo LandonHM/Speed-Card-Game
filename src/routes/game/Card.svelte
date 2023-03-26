@@ -1,10 +1,13 @@
 <script lang="ts">
   import { fade, blur, fly, slide, scale, draw, crossfade } from 'svelte/transition';
+  import { createEventDispatcher } from 'svelte';
 
   export let cardData: CardData;
+  const dispatch = createEventDispatcher();
 
   function toggle(e: MouseEvent){
     cardData.flipped = !cardData.flipped;
+    dispatch('flipped');
     e.stopPropagation();
     e.preventDefault();
   }

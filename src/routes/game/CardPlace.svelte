@@ -19,7 +19,7 @@
 
 {#if cardData}
   <div class={$$props.class + " card"} on:dragover={dragged} on:drop={dropped}>
-    <Card bind:cardData />
+    <Card bind:cardData on:flipped />
   </div>
 {:else}
   <div class={$$props.class + " placeholder"} on:dragover={dragged} on:drop={dropped}>
