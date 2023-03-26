@@ -1,18 +1,15 @@
 import { error } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 
-export const load = (({ cookies, params }) => {
-  let message: Message = {
-    action: "connect",
-    user: String(cookies.get('user')),
-    lobbyname: String(cookies.get('lobbyname')),
-    password: String(cookies.get('password')),
-    message: "",
+export const load = (async ({ cookies, params }) => {
+  let message: Message|null;
+  if(cookies.get('message') != undefined){
+    message = JSON.parse(cookies.get('message')!);
+    cookies.delete('message');
+  } else {
+    // will get from param options if not from cookie to allow no js things.
+    message = null;
   }
-  cookies.delete('action');
-  cookies.delete('user');
-  cookies.delete('lobbyname');
-  cookies.delete('password');
 
-  return { message };
+  return message;
 }) satisfies PageServerLoad;

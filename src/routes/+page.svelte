@@ -6,7 +6,7 @@
   //console.log(data);
 </script>
 
-<form method="POST" action="?/login">
+<form method="POST">
   <div class="row">
   <label>
     Username

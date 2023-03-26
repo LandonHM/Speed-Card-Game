@@ -52,7 +52,8 @@ import { redirect } from '@sveltejs/kit';
 
 export const load = (async ({ cookies }) => {
   if(cookies.get('result') == 'true') {
-    throw redirect (301, `/game/${cookies.get('lobbyname')}`);
+    // redirect code may need adjusting
+    throw redirect (303, `/game/${cookies.get('lobbyname')}`);
   }else{
     return {
         lobbyname: cookies.get('lobbyname')
@@ -61,7 +62,7 @@ export const load = (async ({ cookies }) => {
 }) satisfies PageServerLoad;
 
 export const actions = {
-  login: async ({ cookies, request }) => {
+  default: async ({ cookies, request }) => {
     const data = await request.formData();
     let message: Message = {
         action: "ping",
@@ -70,16 +71,18 @@ export const actions = {
         password: String(data.get('password')),
         message: '',
     }
-    cookies.set('action', String(message.action));
-    cookies.set('user', String(message.user));
-    cookies.set('lobbyname', String(message.lobbyname));
-    cookies.set('password', String(message.password));
+    // Message has no expiry so if you refresh in the game it will keep status
+    cookies.set('message', JSON.stringify(message));
+    // lobby will expire after 5 seconds as its only used for error
+    cookies.set('lobbyname', String(message.lobbyname), {maxAge: 5});
     let success: boolean = true;
     if(success){
-        cookies.set('result', 'true');
+        // result will expire to prevent redirect if user want to join a new lobby
+        cookies.set('result', 'true', {maxAge: 5});
         return { success: true };
     }else{
-        cookies.set('result', 'false');
+        // result will expire to prevent redirect if user want to join a new lobby
+        cookies.set('result', 'false', {maxAge: 5});
         return { success: false };
     }
   }
