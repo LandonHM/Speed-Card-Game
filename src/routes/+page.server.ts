@@ -1,68 +1,30 @@
-/*import type { PageServerLoad, Actions } from "./$types";
-//import type { Actions } from "./$types";
+import type { PageServerLoad, Actions } from './$types';
 import { redirect } from '@sveltejs/kit';
 import { WebSocket } from 'ws';
 
-// dont think i need this as this page will never load data
-export const load = (async ({cookies}) => {
-    if(cookies.get("valid") == "true"){
-                    // then redirect to the game
-        return redirect(307,"/game/"+cookies.get("lobbyname"));
-    }
-    //console.log(cookies.get('id'));
-}) satisfies PageServerLoad;
-
-export const actions = {
-    login: async ({cookies, request}) => {
-        const data = await request.formData();
-        let m: Message = {
-            action: "ping",
-            user: String(data.get('username')),
-            lobbyname: String(data.get('lobbyname')),
-            password: String(data.get('password')),
-            message: '',
-        }
-        //console.log("message: " + m);
-        try {
-            let socket: WebSocket = new WebSocket("ws://localhost:1400");
-            socket.onopen = () => socket.send(JSON.stringify(m));
-            socket.onmessage = (sm) => {
-                console.log(sm);
-                if(JSON.parse(String(sm.data)).message == "valid lobby"){
-                    // first set cookies
-                    cookies.set("valid", "true");
-                    cookies.set("lobbyname", String(m.lobbyname));
-                    cookies.set("game", JSON.stringify(m));
-                    // then redirect to the game
-                    return { success: true}
-                    //return redirect(307,"/game/"+m.lobbyname);
-                } else {
-                    console.log('error lobby not found');
-                    return {  error: "error" };
-                }
-            }
-        } catch(e) {
-            console.log(e);
-        }
-    }
-} satisfies Actions; */
-
-import type { PageServerLoad, Actions } from './$types';
-import { redirect } from '@sveltejs/kit';
-
 export const load = (async ({ cookies }) => {
-  if(cookies.get('result') == 'true') {
-    // redirect code may need adjusting
-    throw redirect (303, `/game/${cookies.get('lobbyname')}`);
-  }else{
-    return {
-        lobbyname: cookies.get('lobbyname')
+    console.log("load called");
+    let result: string = cookies.get('result')!;
+    if (result == 'true') {
+        // redirect code may need adjusting
+        throw redirect(303, `/game/${cookies.get('lobbyname')}`);
+    } else if (result == 'false') {
+        return {
+            lobbyname: cookies.get('lobbyname'),
+            host: cookies.get('host'),
+            error: null
+        }
+    } else {
+        return {
+            error: "The server is down, cannot play right now. :("
+        }
     }
-  }
 }) satisfies PageServerLoad;
 
 export const actions = {
-  default: async ({ cookies, request }) => {
+    connect: async ({ cookies, request }) => {
+    console.log('connect called');
+    cookies.set('host', 'false');
     const data = await request.formData();
     let message: Message = {
         action: "ping",
@@ -75,13 +37,86 @@ export const actions = {
     cookies.set('message', JSON.stringify(message));
     // lobby will expire after 5 seconds as its only used for error
     cookies.set('lobbyname', String(message.lobbyname), {maxAge: 5});
-    let success: boolean = true;
-    if(success){
-        // result will expire to prevent redirect if user want to join a new lobby
-        cookies.set('result', 'true', {maxAge: 5});
-        return { success: true };
-    }else{
-        // result will expire to prevent redirect if user want to join a new lobby
+    let success: boolean;
+    try {
+        // Start websocket to server then ping to see if lobby is there
+        let socket: WebSocket = new WebSocket("ws://localhost:1400");
+        socket.onopen = () => socket.send(JSON.stringify(message));
+        const result: string = await new Promise((resolve, _reject) => {
+            let timeout = setTimeout(() => {
+                console.log('basdfklj');
+                resolve('error')
+            }, 3000);
+            // Wait for message from server
+            socket.onmessage = (sm) => {
+                clearTimeout(timeout);
+                if(JSON.parse(String(sm.data)).message == "valid lobby"){
+                    cookies.set('result', 'true', {maxAge: 5});
+                    socket.close()
+                    resolve('true');
+                } else {
+                    cookies.set('result', 'false', {maxAge: 5});
+                    socket.close()
+                    resolve('false');
+                }
+            }
+        });
+        cookies.set('result', result, {maxAge: 5});
+        console.log('here and res: ' + result);
+        return { success : result == 'true'}
+    } catch (e) {
+        cookies.set('result', 'false', {maxAge: 5});
+        return { success: false };
+    }
+
+  },
+  host: async ({ cookies, request }) => {
+    console.log('host called');
+    cookies.set('host', 'true');
+    const data = await request.formData();
+    let message: Message = {
+        action: "pinghost",
+        user: String(data.get('username')),
+        lobbyname: String(data.get('lobbyname')),
+        password: String(data.get('password')),
+        message: '',
+    }
+    // Message has no expiry so if you refresh in the game it will keep status
+    cookies.set('message', JSON.stringify(message));
+    // lobby will expire after 5 seconds as its only used for error
+    cookies.set('lobbyname', String(message.lobbyname), {maxAge: 5});
+    let success: boolean;
+    try {
+        // Start websocket to server then ping to see if lobby is there
+        let socket: WebSocket = new WebSocket("ws://localhost:1400");
+        socket.onopen = () => socket.send(JSON.stringify(message));
+        const result: string = await new Promise((resolve, _reject) => {
+            // Wait for message from server
+            let timeout = setTimeout(() => {
+                console.log('basdfklj');
+                resolve('error')
+            }, 3000);
+            socket.onmessage = (sm) => {
+                clearTimeout(timeout);
+                if(JSON.parse(String(sm.data)).message == "lobby available"){
+                    console.log('hi');
+                    cookies.set('result', 'true', {maxAge: 5});
+                    socket.close()
+                    resolve('true');
+                } else {
+                    console.log('bye');
+                    cookies.set('result', 'false', {maxAge: 5});
+                    socket.close()
+                    resolve('false');
+                }
+            }
+        });
+        cookies.set('result', result, {maxAge: 5});
+        console.log('here and res: ' + result);
+        return { success : result == 'true'}
+        
+    } catch (e) {
+        console.log(e);
         cookies.set('result', 'false', {maxAge: 5});
         return { success: false };
     }
