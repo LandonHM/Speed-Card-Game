@@ -5,13 +5,19 @@ This is the server code which hold the lobbies for the card games so that users 
 
 ### Running
 
-To run the server first compile with
+To run first install the dependencies
+
+```sh
+npm install
+```
+
+Then compile from ts into js
 
 ```sh
 npx tsc
 ```
 
-Then
+Then run with
 
 ```sh
 node dist/main.js
