@@ -55,13 +55,9 @@
   }
 
   export let win: boolean;
-  function setWin() {
-    win = true;
-  }
 
 </script>
 {#if !win}
-<!--<button on:click={setWin}>Click to win!</button>-->
 <Solution cards={solution}/>
 <Deck cards={deck} />
 <Board bind:cards bind:deck solution={solution} bind:win/>

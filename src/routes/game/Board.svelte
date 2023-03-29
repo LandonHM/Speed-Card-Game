@@ -49,7 +49,7 @@
   }
 
   function checkWin(){
-    console.log("checking for win!");
+    //console.log("checking for win!");
     for(let i = 0; i < cards.length; i++){
       if(cards[i] == null)
         return
