@@ -26,7 +26,8 @@
     null, null, null,
   ];
 
-  let solution: CardData[] = [
+  export let solution: CardData[];
+  /*let solution: CardData[] = [
     {id: 0, flipped: false, front: "blueberry", back: "peach"},
     {id: 1, flipped: false, front: "blueberry", back: "apple"},
     {id: 2, flipped: false, front: "blueberry", back: "lemon"},
@@ -36,10 +37,10 @@
     {id: 6, flipped: false, front: "apple", back: "orange"},
     {id: 7, flipped: false, front: "lemon", back: "cherry"},
     {id: 8, flipped: false, front: "orange", back: "cherry"},
-  ];
+  ];*/
+  //shuffle(solution);
 
   shuffle(deck);
-  shuffle(solution);
 
   function shuffle(array: CardData[]) {
     for(let i = array.length-1; i > 0; i--){
@@ -53,7 +54,7 @@
     }
   }
 
-  let win: boolean;
+  export let win: boolean;
   function setWin() {
     win = true;
   }

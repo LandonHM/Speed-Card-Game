@@ -24,6 +24,7 @@ declare global {
 	}
 
 	interface ServerMessage {
+		action: String;
 		user: String;
 		message: String;
 	}
