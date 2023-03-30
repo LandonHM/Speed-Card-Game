@@ -1,9 +1,10 @@
 <script lang="ts">
     import Game from '../Game.svelte';
-    import type { PageData } from './$types';
     import { onMount } from 'svelte';
+    import type { ActionData, PageData } from "./$types";
 
     export let data: Message;
+    export let form: ActionData;
     let started: boolean = false;
     let host: boolean = false;
     let win: boolean = false;
@@ -15,12 +16,16 @@
     let time: number;
     
     // Websocket section
+
+    // some validation needed
     let message = data;
     let user = message.user;
     users = [String(user)];
     let password = message.password;
+    let uuid = message.message;
     let lobbyname = message.lobbyname;
     let socket: WebSocket;
+    console.log(message);
     onMount(async () => {
         socket = new WebSocket("ws://localhost:1400");
         socket.onmessage = (sm) => {
@@ -39,7 +44,8 @@
                 case('start'): solution = JSON.parse(String(m.message)); started = true; break;
             }
         }
-        // host cant reconnect atm
+
+        // make sure they are acutally host before setting host
         if(message.action == "pinghost") {
             message.action = "host";
             host = true;
@@ -75,29 +81,50 @@
     }
 
     function startGame() {
-        m = {action: "start", user: user, password: password, lobbyname: lobbyname, message: 'starting'};
+        m = {action: "start", user: user, password: password, lobbyname: lobbyname, message: uuid};
         sendM(socket, m);
         // start game here
     }
     
 </script>
-{#if !started}
-    <div>
-        <h2>Uesrs Conncete:</h2>
-    </div>
-    <div>
-    {#each users as user}
-        <p>{user}</p>
-    {/each}
-    </div>
-    {#if host} 
-        <button on:click={startGame}> Start game</button>
-    {/if}
+{#if !form?.success && !host}
+    <p>Connect plz</p>
+    <form method="POST">
+      <div class="row">
+        <label>
+        Username: 
+        <input name="username" type="text">
+        </label>
+      </div>
+      <div class="row">
+        <label>
+        Password: 
+        <input name="password" type="password">
+        </label>
+      </div>
+      <div class="row">
+        <button>Connect</button>
+      </div>
+    </form>
 {:else}
-    {#if win}
-    <p1>YOU WON IN {time / 1000} SECONDS</p1>
-    {:else if lost}
-    <p1>YOU LOST {winner} WON IN {time / 1000} SECONDS</p1> 
+    {#if !started}
+        <div>
+            <h2>Uesrs Conncete:</h2>
+        </div>
+        <div>
+        {#each users as user}
+            <p>{user}</p>
+        {/each}
+        </div>
+        {#if host} 
+            <button on:click={startGame}> Start game</button>
+        {/if}
+    {:else}
+        {#if win}
+        <p1>YOU WON IN {time / 1000} SECONDS</p1>
+        {:else if lost}
+        <p1>YOU LOST {winner} WON IN {time / 1000} SECONDS</p1> 
+        {/if}
+        <Game solution={solution} bind:win />
     {/if}
-    <Game solution={solution} bind:win />
 {/if}

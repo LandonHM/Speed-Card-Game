@@ -4,10 +4,12 @@ import { WebSocket, WebSocketServer } from 'ws';
 interface Lobby {
   password: String;
   host: WebSocket;
+  hostId: String;
   users: Set<WebSocket>;
   usersStr: String[];
   deck: CardData[];
   timeStart: Date|undefined;
+  started: boolean;
 }
 
 interface Message {
@@ -57,11 +59,27 @@ console.log("server started on port " + wss.address()['port']);
 function createLobby(m: Message, ws: WebSocket) {
   if(!lobbies.has(m.lobbyname)) {
     console.log("Lobby " + m.lobbyname + " created.")
-    lobbies.set(m.lobbyname, {password: m.password, usersStr: [m.user], host: ws, timeStart: undefined, users: new Set([ws]), deck: JSON.parse(deckStr)});
+    lobbies.set(m.lobbyname, {started: false, password: m.password, usersStr: [m.user], host: ws, hostId: m.message, timeStart: undefined, users: new Set([ws]), deck: JSON.parse(deckStr)});
   } else {
-    console.log("Failed to create " + m.lobbyname + " it already exists");
-    let message: ServerMessage = {action: "error", user: null, message: "Error: Lobby with this name already exists."}
-    ws.send(JSON.stringify(message));
+    let lobby = getLobby(m, ws);
+    if(lobby == null) {
+      console.log("Failed to create " + m.lobbyname + " it already exists");
+      let message: ServerMessage = {action: "error", user: null, message: "Error: Lobby with this name already exists."}
+      ws.send(JSON.stringify(message));
+    } else {
+      // if host is same as before just update the host
+      if(lobby.hostId == m.message) {
+        console.log('host reconnected');
+        lobby.users.delete(lobby.host);
+        lobby.host = ws;
+        lobby.users.add(ws);
+        // if started send them the game
+        if(lobby.started) {
+          let message: ServerMessage = {action: "start", user: m.user, message: JSON.stringify(lobby.deck)};
+          ws.send(JSON.stringify(message));
+        }
+      }
+    }
   }
 }
 
@@ -82,6 +100,11 @@ function joinLobby(m: Message, ws: WebSocket) {
     });
     lobby.usersStr.push(m.user);
     lobby.users.add(ws);
+    // if they join mid game, send them the ongoing game.
+    if(lobby.started) {
+      let message: ServerMessage = {action: "start", user: m.user, message: JSON.stringify(lobby.deck)};
+      ws.send(JSON.stringify(message));
+    }
   } else {
     console.log(m.user + " failed to join " + m.lobbyname);
   }
@@ -101,7 +124,7 @@ function shuffle(array: CardData[]) {
 
 function startGame(m: Message, ws: WebSocket) {
   let lobby: Lobby = getLobby(m,ws);
-  if(lobby != null){
+  if(lobby != null && lobby.hostId == m.message){
     console.log("starting game in " + m.lobbyname);
     // first shuffle
     shuffle(lobby.deck);
@@ -111,8 +134,9 @@ function startGame(m: Message, ws: WebSocket) {
         //console.log('send message!!!')
         e.send(JSON.stringify(message));
       } catch (er) { /* just ignore error */  console.log('failed to send'); console.log(er); }
-      lobby.timeStart = new Date();
     });
+    lobby.timeStart = new Date();
+    lobby.started = true;
   } else {
     console.log(m.user + " failed to start game in " + m.lobbyname);
   }
@@ -150,8 +174,8 @@ function sendWin(m: Message, ws: WebSocket) {
   if(lobby != null){
     let now: Date = new Date();
     let sm: ServerMessage = {action: "win", user: m.user, message: String(((+now)-(+lobby.timeStart)))};
-    console.log(String(((+now)-(+lobby.timeStart))));
-
+    lobby.started = false;
+    //console.log(String(((+now)-(+lobby.timeStart))));
     lobby.users.forEach(e => {
       try{
         //console.log('send message!!!')
@@ -168,6 +192,7 @@ function getLobby(m: Message, ws: WebSocket) : Lobby {
       return lobby;
     } else {
       // password was incorrect
+      console.log(lobby.password + " " + m.password);
       let message: ServerMessage = {action: "error", user: null, message:"Error: Incorrect password."}
       ws.send(JSON.stringify(message));
       return null;
