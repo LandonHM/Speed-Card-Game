@@ -38,7 +38,8 @@ export const actions = {
     let success: boolean;
     try {
         // Start websocket to server then ping to see if lobby is there
-        let socket: WebSocket = new WebSocket("ws://localhost:1400");
+	    //let server: string = "ws://45.63.5.151:1400";
+        let socket: WebSocket = new WebSocket("ws://45.63.5.151:1400");
         socket.onopen = () => socket.send(JSON.stringify(message));
         const result: string = await new Promise((resolve, _reject) => {
             // Wait for message from server

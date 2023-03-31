@@ -1,7 +1,4 @@
 import type { PageServerLoad, Actions } from './$types';
-import { WebSocket } from 'ws';
-import { redirect } from '@sveltejs/kit';
-import { json } from 'stream/consumers';
 
 export const load = (async ({ cookies, params }) => {
   // Return host cookie and game lobby

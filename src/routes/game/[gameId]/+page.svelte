@@ -1,7 +1,7 @@
 <script lang="ts">
     import Game from '../Game.svelte';
     import { onMount } from 'svelte';
-    import type { ActionData, PageData } from "./$types";
+    import type { PageData } from "./$types";
 
     export let data: PageData;
     // Data for websocket communcation and setup
@@ -31,7 +31,8 @@
     // Websocket functionality
     onMount(async () => {
         // If there is no message, then the user needs to connect.
-        socket = new WebSocket("ws://localhost:1400");
+        socket = new WebSocket("ws://45.63.5.151:1400");
+        //socket = new WebSocket(server);
         socket.onmessage = (sm) => {
             let m: ServerMessage = JSON.parse(String(sm.data));
             //console.log(m);
