@@ -149,15 +149,20 @@ function startGame(m: Message, ws: WebSocket) {
 }
 
 function pingLobby(m: Message, ws: WebSocket) {
-  let lobby: Lobby = getLobby(m,ws);
+  let lobby: Lobby = lobbies.get(m.lobbyname);
   console.log("ping started");
-  if(lobby != null){
-    let message: ServerMessage = {action: "pong", user: m.user, message: "valid lobby"}
+  if(lobby != undefined){
     console.log("ping sucess");
+    let message: ServerMessage;
+    if(lobby.password == "") {
+      message= {action: "pong", user: m.user, message: "nopassword"}
+    } else {
+      message= {action: "pong", user: m.user, message: "yespassword"}
+    }
     ws.send(JSON.stringify(message));
   } else {
     console.log("ping fail");
-    let message: ServerMessage = {action: "pong", user: null, message: "invalid lobby"}
+    let message: ServerMessage = {action: "pong", user: null, message: "nolobby"}
     ws.send(JSON.stringify(message));
   }
 }
@@ -198,15 +203,10 @@ function getLobby(m: Message, ws: WebSocket) : Lobby {
       return lobby;
     } else {
       // password was incorrect
-      console.log(lobby.password + " " + m.password);
-      let message: ServerMessage = {action: "error", user: null, message:"Error: Incorrect password."}
-      ws.send(JSON.stringify(message));
       return null;
     }
   } else {
     // Lobby was not found
-    let message: ServerMessage = {action: "error", user: null, message:"Error: Lobby not found."}
-    ws.send(JSON.stringify(message));
     return null;
   }
 }
@@ -228,8 +228,8 @@ wss.on('connection', function connection(ws: WebSocket) {
 
   ws.on('message', function message(data) {
     let m: Message = JSON.parse(String(data));
-    //console.log("message recived");
-    //console.log(m);
+    console.log("message recived");
+    console.log(m);
     switch(m.action){
        case("host"): createLobby(m,ws); break;
        case("connect"): joinLobby(m,ws); break;

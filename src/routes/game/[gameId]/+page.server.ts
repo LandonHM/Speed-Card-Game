@@ -12,21 +12,21 @@ export const load = (async ({ cookies, params }) => {
   //console.log('game pao');
   try {
     message = JSON.parse(cookies.get('message')!);
-    console.log('cookie have message');
-    if( message.action == "pinghost" && message.lobbyname != params.gameId) {
+    //console.log('cookie have message');
+    if(  message.lobbyname != params.gameId) {
       // Trying to host lobby
       console.log('trying to host lobby they didnt creat (deleting cookie)');
       //cookies.set('message', '');
-      return;
+      return {lobby: params.gameId};
     } else {
-      console.log('returning messsge');
+      //console.log('returning messsge');
       return message;
     }
   } catch(e) {
     // json failed to parse = invalid message so set message to null
-    console.log('cookie not have message');
+    //console.log('cookie not have message');
     //cookies.set('message', '');
-    return;
+    return {lobby: params.gameId};
   }
 }) satisfies PageServerLoad;
 
@@ -38,10 +38,9 @@ export const actions = {
         action: "connect",
         user: String(data.get('username')),
         lobbyname: request.url.substring(request.url.lastIndexOf('/')+1),
-        password: String(data.get('password')),
+        password: data.get('password') == null ? "" : String(data.get('password')),
         message: '',
     }
-    //console.log(message);
     // Message has no expiry so if you refresh in the game it will keep status
     cookies.set('message', JSON.stringify(message));
     return {success: true}
