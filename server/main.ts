@@ -60,6 +60,8 @@ function createLobby(m: Message, ws: WebSocket) {
   if(!lobbies.has(m.lobbyname)) {
     console.log("Lobby " + m.lobbyname + " created.")
     lobbies.set(m.lobbyname, {started: false, password: m.password, usersStr: [m.user], host: ws, hostId: m.message, timeStart: undefined, users: new Set([ws]), deck: JSON.parse(deckStr)});
+    let message: ServerMessage = {action: "created", user: null, message: "Created lobby"}
+    ws.send(JSON.stringify(message));
   } else {
     let lobby = getLobby(m, ws);
     if(lobby == null) {
@@ -70,6 +72,8 @@ function createLobby(m: Message, ws: WebSocket) {
       // if host is same as before just update the host
       if(lobby.hostId == m.message) {
         console.log('host reconnected');
+        let message: ServerMessage = {action: "hostreconnect", user: m.user, message: JSON.stringify(lobby.usersStr)};
+        ws.send(JSON.stringify(message));
         lobby.users.delete(lobby.host);
         lobby.host = ws;
         lobby.users.add(ws);
@@ -107,6 +111,8 @@ function joinLobby(m: Message, ws: WebSocket) {
     }
   } else {
     console.log(m.user + " failed to join " + m.lobbyname);
+    let message: ServerMessage = {action: "conerr", user: m.user, message: ""};
+    ws.send(JSON.stringify(message));
   }
 }
 

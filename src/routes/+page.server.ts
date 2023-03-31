@@ -23,7 +23,6 @@ export const load = (async ({ cookies }) => {
 export const actions = {
   default: async ({ cookies, request }) => {
     console.log('host called');
-    cookies.set('host', 'true');
     const data = await request.formData();
     let message: Message = {
         action: "pinghost",

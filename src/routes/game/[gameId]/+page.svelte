@@ -2,38 +2,54 @@
     import Game from '../Game.svelte';
     import { onMount } from 'svelte';
     import type { ActionData, PageData } from "./$types";
+    import { is_empty } from 'svelte/internal';
 
-    export let data: Message;
-    export let form: ActionData;
-    let started: boolean = false;
+    export let data: PageData;
+    // Data for websocket communcation and setup
+    let message: Message = data as Message;
     let host: boolean = false;
+    let started: boolean = false;
+    let connected: boolean = false;
+    let conerror: boolean = false;
+    let m: Message;
+    let socket: WebSocket;
+    let user: String;
+    let password: String;
+    let uuid: String;
+    let lobbyname: String;
+    let waiting: boolean = false;
+
+    // Data for game function
     let win: boolean = false;
     let lost: boolean = false;
     let winner: String;
     let users: string[];
-    let m: Message;
     let solution: CardData[];
     let time: number;
-    
-    // Websocket section
 
-    // some validation needed
-    let message = data;
-    let user = message.user;
-    users = [String(user)];
-    let password = message.password;
-    let uuid = message.message;
-    let lobbyname = message.lobbyname;
-    let socket: WebSocket;
-    console.log(message);
+    // Websocket functionality
     onMount(async () => {
+        // If there is no message, then the user needs to connect.
         socket = new WebSocket("ws://localhost:1400");
+        if(!isEmpty(data)) {
+            console.log('message is not undefined');
+            user = message.user;
+            password = message.password;
+            uuid = message.message;
+            lobbyname = message.lobbyname;
+            waiting = true;
+            if(message.action == "pinghost") {
+                message.action = "host";
+                socket.onopen = () => sendM(socket, message!);
+            } else if (message.action == "connect") {
+                socket.onopen = () => sendM(socket, message!);
+            }
+        }
+        console.log('onmessageing');
         socket.onmessage = (sm) => {
-            //console.log(sm);
             let m: ServerMessage = JSON.parse(String(sm.data));
-            //console.log(m);
             switch(m.action) {
-                case('userlist'): users = JSON.parse(String(m.message)); users.push(String(user)); users = users; break;
+                case('userlist'): waiting = false; connected = true; users = JSON.parse(String(m.message)); users.push(String(user)); users = users; break;
                 case('join'): users.push(String(m.user)); users = users; break;
                 case('win'): 
                     console.log(win);
@@ -41,24 +57,21 @@
                     time = Number(m.message);
                     if(!win) { lost = true; winner = m.user }; 
                     break;
-                case('start'): solution = JSON.parse(String(m.message)); started = true; break;
+                case('start'): solution = JSON.parse(String(m.message)); started = true; win = false; break;
+                case('hostreconnect'): users = JSON.parse(String(m.message)); host = true; connected = true; waiting = false; break;
+                case('created'): users = [String(user)]; host = true; connected = true; waiting = false;  break;
+                case('conerr'): conerror = true; waiting = false; connected = false; break;
             }
-        }
-
-        // make sure they are acutally host before setting host
-        if(message.action == "pinghost") {
-            message.action = "host";
-            host = true;
-            socket.onopen = () => sendM(socket, message);
-        } else if (message.action == "ping") {
-            message.action = "connect";
-            host = false;
-            socket.onopen = () => sendM(socket, message);
         }
     })
 
+    function isEmpty(obj: any) {
+        for(var i in obj) return false;
+        return true;
+    }
+
     function sendM(socket: WebSocket, m: Message) {
-        //console.log('sending');
+        console.log('sending');
         socket.send(JSON.stringify(m));
     }
 
@@ -87,7 +100,9 @@
     }
     
 </script>
-{#if !form?.success && !host}
+{#if waiting}
+<p> Attempting to reconnect you.</p>
+{:else if !host && !connected}
     <p>Connect plz</p>
     <form method="POST">
       <div class="row">
@@ -106,6 +121,9 @@
         <button>Connect</button>
       </div>
     </form>
+    {#if conerror}
+    <p>There was an error trying to connect you</p>
+    {/if}
 {:else}
     {#if !started}
         <div>
