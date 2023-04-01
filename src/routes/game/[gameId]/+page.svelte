@@ -47,7 +47,7 @@
                     time = Number(m.message);
                     if(!win) { lost = true; winner = m.user }; 
                     break;
-                case('start'): solution = JSON.parse(m.message); started = true; win = false; break;
+                case('start'): solution = JSON.parse(m.message); started = true; win = false; lost = false; break;
                 // Host connting returns
                 case('hostreconnect'): users = JSON.parse(m.message); host = true; connected = true; waiting = false; break;
                 case('created'): users = [user]; host = true; connected = true; waiting = false;  break;
@@ -109,6 +109,7 @@
 
     function startGame() {
         m = {action: "start", user: user, password: password, lobbyname: lobbyname!, id: uuid};
+        win = false; lost = false;
         sendM(socket, m);
         // start game here
     }
@@ -159,11 +160,26 @@
         {/if}
     {:else}
         {#if win}
-        <p1>YOU WON IN {time / 1000} SECONDS</p1>
+        <div class="row">
+            <p1>YOU WON IN {time / 1000} SECONDS</p1>
+            {#if host}
+                <div>
+                    <button on:click={startGame}>New Game.</button>
+                </div>
+            {/if}
+        </div>
         {:else if lost}
-        <p1>YOU LOST {winner} WON IN {time / 1000} SECONDS</p1> 
-        {/if}
+        <div class="row">
+            <p1>YOU LOST {winner} WON IN {time / 1000} SECONDS</p1> 
+            {#if host}
+                <div>
+                    <button on:click={startGame}>New Game.</button>
+                </div>
+            {/if}
+        </div>
+        {:else}
         <Game solution={solution} bind:win />
+        {/if}
     {/if}
 {/if}
 {/if}

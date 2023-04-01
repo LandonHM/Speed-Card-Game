@@ -71,7 +71,7 @@ if(process.env.PROD == '1') {
     key: fs.readFileSync(process.env.KEYFILE)
   });
   wss = new WebSocketServer({
-    server: server
+    server: server,
   });
 } else {
   console.log('not in production')
@@ -90,6 +90,15 @@ function updateUser(users: User[], id: string, user: User) {
       e.name = user.name;
       e.socket = user.socket;
     }
+  });
+}
+
+function sendLobbyMessage(users: User[], message: ServerMessage) {
+  users.forEach(e => {
+    //console.log('send message!!!')
+    e.socket.send(JSON.stringify(message));
+    //console.log('sending to ' + e.name );
+    //console.log(e.socket.readyState == WebSocket.CLOSED);
   });
 }
 
@@ -151,12 +160,7 @@ function joinLobby(m: Message, ws: WebSocket) {
     // send new user to all existing users.
     if(addUser(lobby.users, {id: m.id, name: m.user, socket: ws})) {
       message = {action: "join", user: m.user, message: "joined lobby"}
-      lobby.users.forEach(e => {
-        try{
-          //console.log('send message!!!')
-          e.socket.send(JSON.stringify(message));
-        } catch (er) { /* just ignore error */  console.log('failed to send'); console.log(er); }
-      });
+      sendLobbyMessage(lobby.users, message);
     }
 
     // if they join mid game, send them the ongoing game.
@@ -190,12 +194,7 @@ function startGame(m: Message, ws: WebSocket) {
     // first shuffle
     shuffle(lobby.deck);
     let message: ServerMessage = {action: "start", user: m.user, message: JSON.stringify(lobby.deck)};
-    lobby.users.forEach(e => {
-      try{
-        //console.log('send message!!!')
-        e.socket.send(JSON.stringify(message));
-      } catch (er) { /* just ignore error */  console.log('failed to send'); console.log(er); }
-    });
+    sendLobbyMessage(lobby.users, message);
     lobby.timeStart = new Date();
     lobby.started = true;
   } else {
@@ -239,15 +238,10 @@ function sendWin(m: Message, ws: WebSocket) {
   let lobby: Lobby = getLobby(m,ws);
   if(lobby != null){
     let now: Date = new Date();
-    let sm: ServerMessage = {action: "win", user: m.user, message: String(((+now)-(+lobby.timeStart)))};
+    let message: ServerMessage = {action: "win", user: m.user, message: String(((+now)-(+lobby.timeStart)))};
     lobby.started = false;
     //console.log(String(((+now)-(+lobby.timeStart))));
-    lobby.users.forEach(e => {
-      try{
-        //console.log('send message!!!')
-        e.socket.send(JSON.stringify(sm));
-      } catch (er) { /* just ignore error */  console.log('failed to send'); console.log(er); }
-    });
+    sendLobbyMessage(lobby.users, message);
   }
 }
 
@@ -316,7 +310,7 @@ wss.on("close", function close() {
 });
 
 if(process.env.PROD == '1') {
-  server.listen(function listen() {
+  server.listen(1400, function listen() {
     const ws = new WebSocket(`wss://localhost:${server.address()['port']}`, {rejectUnauthorized: false});
     ws.on('error', console.error);
     ws.on('open', function open() {

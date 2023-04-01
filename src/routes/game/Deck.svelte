@@ -2,7 +2,7 @@
 
   import Card from './Card.svelte'
 
-  export let cards: CardData[];
+  export let cards: CardData[] = [];
 
 </script>
 
@@ -29,8 +29,8 @@
   .card-box {
     grid-row: 1;
     grid-column: 1;
-    width: 128px;
-    height: 128px;
+    width: 96px;
+    height: 96px;
   }
 
 </style>

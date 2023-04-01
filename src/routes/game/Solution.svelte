@@ -1,6 +1,6 @@
 <script lang="ts">
 
-  export let cards: CardData[];
+  export let cards: CardData[] = [];
 
 </script>
 
@@ -35,6 +35,8 @@
   row-gap: 2px;
   background-color: #1c5a91;
   padding: 10px;
+  border-radius: 10px;
+  border: 3px solid black;
 }
 
 .grid-container :global(.grid-item){

@@ -80,11 +80,13 @@
 
 .grid-container {
   display: grid;
-  grid-template-columns: repeat(3,140px);
+  grid-template-columns: repeat(3,100px);
   gap: 10px;
   row-gap: 2px;
   background-color: #1c5a91;
   padding: 10px;
+  border-radius: 10px;
+  border: 3px solid black;
 }
 
 .grid-container :global(.grid-item){
@@ -93,8 +95,8 @@
   place-self: center;
   font-size: 30px;
   text-align: center;
-  width: 128px; 
-  height: 128px;
+  width: 96px; 
+  height: 96px;
 }
 
 </style>

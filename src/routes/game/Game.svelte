@@ -26,7 +26,7 @@
     null, null, null,
   ];
 
-  export let solution: CardData[];
+  export let solution: CardData[] = [];
   /*let solution: CardData[] = [
     {id: 0, flipped: false, front: "blueberry", back: "peach"},
     {id: 1, flipped: false, front: "blueberry", back: "apple"},
