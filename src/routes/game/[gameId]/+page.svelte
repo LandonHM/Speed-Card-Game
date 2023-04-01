@@ -32,13 +32,13 @@
     onMount(async () => {
         // If there is no message, then the user needs to connect.
         socket = new WebSocket("wss://kanji.help:1400");
-        //socket = new WebSocket(server);
+        //socket = new WebSocket("ws://localhost:1400");
         socket.onmessage = (sm) => {
             let m: ServerMessage = JSON.parse(String(sm.data));
             //console.log(m);
             switch(m.action) {
                 // Lists lobby members
-                case('userlist'): waiting = false; connected = true; users = JSON.parse(String(m.message)); users.push(String(user)); users = users; break;
+                case('userlist'): waiting = false; connected = true; users = JSON.parse(String(m.message)); users = users; break;
                 case('join'): users.push(String(m.user)); users = users; break;
                 // Game returnds
                 case('win'): 
@@ -52,6 +52,7 @@
                 case('hostreconnect'): users = JSON.parse(String(m.message)); host = true; connected = true; waiting = false; break;
                 case('created'): users = [String(user)]; host = true; connected = true; waiting = false;  break;
                 // Incorrect password
+                case('error'): 
                 case('conerr'): conerror = true; waiting = false; connected = false; break;
                 // Lobby ping returnds
                 case('pong'): 
@@ -71,9 +72,14 @@
             waiting = true;
             if(message.action == "pinghost") {
                 message.action = "host";
+                // dont have to ping lobby cause create lobby will fail
+                socket.onopen = () => {sendM(socket, message!);}
+            } else {
+                // I ping to see if the lobby is still valid (if they have an old cookie)
+                socket.onopen = () => {sendM(socket, m); sendM(socket, message!);}
             }
-            socket.onopen = () => {sendM(socket, m); sendM(socket, message!);}
         } else {
+            // if lobbyname is not undefined that means the user is not logged in, so just ping to see if there is a lobby and/or if there is a required password
             socket.onopen = () => sendM(socket,m);
         }
     })

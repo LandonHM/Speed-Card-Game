@@ -31,15 +31,15 @@ export const actions = {
         password: String(data.get('password')),
         message: crypto.randomUUID(),
     }
-    // Message has no expiry so if you refresh in the game it will keep status
-    cookies.set('message', JSON.stringify(message));
+    //cookies.set('message', JSON.stringify(message));
+    cookies.set('message', JSON.stringify(message), {maxAge: 60*60});
     // lobby will expire after 5 seconds as its only used for error
     cookies.set('lobbyname', String(message.lobbyname), {maxAge: 5});
     let success: boolean;
     try {
         // Start websocket to server then ping to see if lobby is there
-	    //let server: string = "ws://45.63.5.151:1400";
         let socket: WebSocket = new WebSocket("wss://kanji.help:1400");
+        //let socket: WebSocket = new WebSocket("ws://localhost:1400");
         socket.onopen = () => socket.send(JSON.stringify(message));
         const result: string = await new Promise((resolve, _reject) => {
             // Wait for message from server

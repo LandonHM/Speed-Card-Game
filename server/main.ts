@@ -7,28 +7,34 @@ dotenv.config();
 
 /* TYPES */
 interface Lobby {
-  password: String;
+  password: string;
   host: WebSocket;
-  hostId: String;
-  users: Set<WebSocket>;
-  usersStr: String[];
+  hostId: string;
+  users: User[]
   deck: CardData[];
   timeStart: Date|undefined;
   started: boolean;
 }
 
+interface User {
+  name: string;
+  id: string;
+  socket: WebSocket;
+}
+
+
 interface Message {
-  action: String;
-  user: String;
-  lobbyname: String;
-  password: String;
-  message: String;
+  action: string;
+  user: string;
+  lobbyname: string;
+  password: string;
+  message: string;
 }
 
 interface ServerMessage {
-  action: String;
-  user: String;
-  message: String;
+  action: string;
+  user: string;
+  message: string;
 }
 
 interface CardData {
@@ -51,25 +57,60 @@ let deck: CardData[] = [
   {id: 8, flipped: false, front: "orange", back: "cherry"},
 ];
 let deckStr = JSON.stringify(deck);
-let lobbies: Map<String, Lobby> = new Map();
+let lobbies: Map<string, Lobby> = new Map();
 
-const server = https.createServer({
-  cert: fs.readFileSync(process.env.CERTFILE),
-  key: fs.readFileSync(process.env.KEYFILE)
-});
+// PROD environment variable used to tell if production or not
+// 0 - not in production
+// 1 - in production
+let wss: WebSocketServer;
+let server;
+if(process.env.PROD == '1') {
+  console.log('in production')
+  server = https.createServer({
+    cert: fs.readFileSync(process.env.CERTFILE),
+    key: fs.readFileSync(process.env.KEYFILE)
+  });
+  wss = new WebSocketServer({
+    server: server
+  });
+} else {
+  console.log('not in production')
+  wss = new WebSocketServer({
+    port: 1400,
+  });
+}
 
-const wss: WebSocketServer = new WebSocketServer({
-  server: server
-});
 
 //console.log("server started on port " + server.address());
 
 /* FUNCTIONS */
+function updateUser(users: User[], id: string, user: User) {
+  users.forEach(e => {
+    if(e.id == id){
+      e.name = user.name;
+      e.socket = user.socket;
+    }
+  });
+}
+
+// Will return true if a user was added, but false if a user was updated.
+function addUser(users: User[], user: User): boolean {
+  for(let i = 0; i < users.length; i++) {
+    if(users[i].id == user.id) {
+      users[i].socket = user.socket;
+      users[i].name = user.name;
+      return false;
+    }
+  }
+  users.push(user);
+  return true;
+}
 
 function createLobby(m: Message, ws: WebSocket) {
   if(!lobbies.has(m.lobbyname)) {
     console.log("Lobby " + m.lobbyname + " created.")
-    lobbies.set(m.lobbyname, {started: false, password: m.password, usersStr: [m.user], host: ws, hostId: m.message, timeStart: undefined, users: new Set([ws]), deck: JSON.parse(deckStr)});
+    let host: User = {name: m.user, id: m.message, socket: ws};
+    lobbies.set(m.lobbyname, {started: false, password: m.password, host: ws, hostId: m.message, timeStart: undefined, users: [host], deck: JSON.parse(deckStr)});
     let message: ServerMessage = {action: "created", user: null, message: "Created lobby"}
     ws.send(JSON.stringify(message));
   } else {
@@ -82,11 +123,10 @@ function createLobby(m: Message, ws: WebSocket) {
       // if host is same as before just update the host
       if(lobby.hostId == m.message) {
         console.log('host reconnected');
-        let message: ServerMessage = {action: "hostreconnect", user: m.user, message: JSON.stringify(lobby.usersStr)};
+        let message: ServerMessage = {action: "hostreconnect", user: m.user, message: JSON.stringify(lobby.users.map(e => e.name))};
         ws.send(JSON.stringify(message));
-        lobby.users.delete(lobby.host);
+        updateUser(lobby.users, m.message, {name: m.user, id: m.message, socket: ws});
         lobby.host = ws;
-        lobby.users.add(ws);
         // if started send them the game
         if(lobby.started) {
           let message: ServerMessage = {action: "start", user: m.user, message: JSON.stringify(lobby.deck)};
@@ -102,18 +142,19 @@ function joinLobby(m: Message, ws: WebSocket) {
   if(lobby != null){
     console.log(m.user + " joined lobby " + m.lobbyname);
     // send all current users to new user.
-    let message: ServerMessage = {action: "userlist", user: m.user, message: JSON.stringify(lobby.usersStr)};
+    let message: ServerMessage = {action: "userlist", user: m.user, message: JSON.stringify(lobby.users.map(e => e.name))};
     ws.send(JSON.stringify(message));
     // send new user to all existing users.
-    message = {action: "join", user: m.user, message: "joined lobby"}
-    lobby.users.forEach(e => {
-      try{
-        //console.log('send message!!!')
-        e.send(JSON.stringify(message));
-      } catch (er) { /* just ignore error */  console.log('failed to send'); console.log(er); }
-    });
-    lobby.usersStr.push(m.user);
-    lobby.users.add(ws);
+    if(addUser(lobby.users, {id: m.message, name: m.user, socket: ws})) {
+      message = {action: "join", user: m.user, message: "joined lobby"}
+      lobby.users.forEach(e => {
+        try{
+          //console.log('send message!!!')
+          e.socket.send(JSON.stringify(message));
+        } catch (er) { /* just ignore error */  console.log('failed to send'); console.log(er); }
+      });
+    }
+
     // if they join mid game, send them the ongoing game.
     if(lobby.started) {
       let message: ServerMessage = {action: "start", user: m.user, message: JSON.stringify(lobby.deck)};
@@ -148,7 +189,7 @@ function startGame(m: Message, ws: WebSocket) {
     lobby.users.forEach(e => {
       try{
         //console.log('send message!!!')
-        e.send(JSON.stringify(message));
+        e.socket.send(JSON.stringify(message));
       } catch (er) { /* just ignore error */  console.log('failed to send'); console.log(er); }
     });
     lobby.timeStart = new Date();
@@ -200,7 +241,7 @@ function sendWin(m: Message, ws: WebSocket) {
     lobby.users.forEach(e => {
       try{
         //console.log('send message!!!')
-        e.send(JSON.stringify(sm));
+        e.socket.send(JSON.stringify(sm));
       } catch (er) { /* just ignore error */  console.log('failed to send'); console.log(er); }
     });
   }
@@ -228,7 +269,7 @@ function printDebug(m: Message, ws: WebSocket) {
     console.log("Lobby: " + n);
     console.log("Host: " + l.host);
     console.log("Password: " + l.password);
-    console.log("Num users: " + l.users.size);
+    console.log("Num users: " + l.users.length);
   }
 }
 
@@ -270,10 +311,12 @@ wss.on("close", function close() {
   clearInterval(interval);
 });
 
-server.listen(function listen() {
-  const ws = new WebSocket(`wss://localhost:${server.address()['port']}`, {rejectUnauthorized: false});
-  ws.on('error', console.error);
-  ws.on('open', function open() {
-    console.log(`wss://localhost:${server.address()['port']}`);
+if(process.env.PROD == '1') {
+  server.listen(function listen() {
+    const ws = new WebSocket(`wss://localhost:${server.address()['port']}`, {rejectUnauthorized: false});
+    ws.on('error', console.error);
+    ws.on('open', function open() {
+      console.log(`wss://localhost:${server.address()['port']}`);
+    });
   });
-});
+}
