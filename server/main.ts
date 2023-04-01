@@ -1,4 +1,6 @@
 import { WebSocket, WebSocketServer } from 'ws';
+import https from 'https';
+import fs from 'fs';
 
 /* TYPES */
 interface Lobby {
@@ -48,11 +50,16 @@ let deck: CardData[] = [
 let deckStr = JSON.stringify(deck);
 let lobbies: Map<String, Lobby> = new Map();
 
-const wss: WebSocketServer = new WebSocketServer({
-  port: 1400
+const server = https.createServer({
+  cert: fs.readFileSync(''),
+  key: fs.readFileSync('')
 });
 
-console.log("server started on port " + wss.address()['port']);
+const wss: WebSocketServer = new WebSocketServer({
+  server: server
+});
+
+//console.log("server started on port " + server.address());
 
 /* FUNCTIONS */
 
@@ -258,4 +265,12 @@ let interval = setInterval(function ping() {
 
 wss.on("close", function close() {
   clearInterval(interval);
+});
+
+server.listen(function listen() {
+  const ws = new WebSocket(`wss://localhost:${server.address()['port']}`, {rejectUnauthorized: false});
+  ws.on('error', console.error);
+  ws.on('open', function open() {
+    console.log(`wss://localhost:${server.address()['port']}`);
+  });
 });
