@@ -31,7 +31,7 @@
     // Websocket functionality
     onMount(async () => {
         // If there is no message, then the user needs to connect.
-        socket = new WebSocket("ws://45.63.5.151:1400");
+        socket = new WebSocket("wss://kanji.help:1400");
         //socket = new WebSocket(server);
         socket.onmessage = (sm) => {
             let m: ServerMessage = JSON.parse(String(sm.data));
