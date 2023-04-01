@@ -1,6 +1,9 @@
 import { WebSocket, WebSocketServer } from 'ws';
 import https from 'https';
 import fs from 'fs';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 /* TYPES */
 interface Lobby {
@@ -51,8 +54,8 @@ let deckStr = JSON.stringify(deck);
 let lobbies: Map<String, Lobby> = new Map();
 
 const server = https.createServer({
-  cert: fs.readFileSync(''),
-  key: fs.readFileSync('')
+  cert: fs.readFileSync(process.env.CERTFILE),
+  key: fs.readFileSync(process.env.KEYFILE)
 });
 
 const wss: WebSocketServer = new WebSocketServer({
