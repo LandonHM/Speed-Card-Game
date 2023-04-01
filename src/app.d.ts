@@ -16,17 +16,17 @@ declare global {
 	}
 
 	interface Message {
-		action: String;
-		user: String;
-		lobbyname: String;
-		password: String;
-		message: String;
+		action: string;
+		user: string;
+		lobbyname: string;
+		password: string;
+		id: string;
 	}
 
 	interface ServerMessage {
-		action: String;
-		user: String;
-		message: String;
+		action: string;
+		user: string;
+		message: string;
 	}
 }
 

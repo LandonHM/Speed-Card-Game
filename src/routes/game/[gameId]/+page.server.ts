@@ -24,7 +24,7 @@ export const actions = {
         user: String(data.get('username')),
         lobbyname: request.url.substring(request.url.lastIndexOf('/')+1),
         password: data.get('password') == null ? "" : String(data.get('password')),
-        message: crypto.randomUUID(),
+        id: crypto.randomUUID(),
     }
     // All cookies will expire in one hour 
     cookies.set('message', JSON.stringify(message), {maxAge: 60*60});

@@ -28,7 +28,7 @@ interface Message {
   user: string;
   lobbyname: string;
   password: string;
-  message: string;
+  id: string;
 }
 
 interface ServerMessage {
@@ -109,8 +109,8 @@ function addUser(users: User[], user: User): boolean {
 function createLobby(m: Message, ws: WebSocket) {
   if(!lobbies.has(m.lobbyname)) {
     console.log("Lobby " + m.lobbyname + " created.")
-    let host: User = {name: m.user, id: m.message, socket: ws};
-    lobbies.set(m.lobbyname, {started: false, password: m.password, host: ws, hostId: m.message, timeStart: undefined, users: [host], deck: JSON.parse(deckStr)});
+    let host: User = {name: m.user, id: m.id, socket: ws};
+    lobbies.set(m.lobbyname, {started: false, password: m.password, host: ws, hostId: m.id, timeStart: undefined, users: [host], deck: JSON.parse(deckStr)});
     let message: ServerMessage = {action: "created", user: null, message: "Created lobby"}
     ws.send(JSON.stringify(message));
   } else {
@@ -121,17 +121,21 @@ function createLobby(m: Message, ws: WebSocket) {
       ws.send(JSON.stringify(message));
     } else {
       // if host is same as before just update the host
-      if(lobby.hostId == m.message) {
+      if(lobby.hostId == m.id) {
         console.log('host reconnected');
         let message: ServerMessage = {action: "hostreconnect", user: m.user, message: JSON.stringify(lobby.users.map(e => e.name))};
         ws.send(JSON.stringify(message));
-        updateUser(lobby.users, m.message, {name: m.user, id: m.message, socket: ws});
+        updateUser(lobby.users, m.id, {name: m.user, id: m.id, socket: ws});
         lobby.host = ws;
         // if started send them the game
         if(lobby.started) {
           let message: ServerMessage = {action: "start", user: m.user, message: JSON.stringify(lobby.deck)};
           ws.send(JSON.stringify(message));
         }
+      } else {
+        console.log("Failed to create " + m.lobbyname + " it already exists");
+        let message: ServerMessage = {action: "error", user: null, message: "Error: Lobby with this name already exists."}
+        ws.send(JSON.stringify(message));
       }
     }
   }
@@ -145,7 +149,7 @@ function joinLobby(m: Message, ws: WebSocket) {
     let message: ServerMessage = {action: "userlist", user: m.user, message: JSON.stringify(lobby.users.map(e => e.name))};
     ws.send(JSON.stringify(message));
     // send new user to all existing users.
-    if(addUser(lobby.users, {id: m.message, name: m.user, socket: ws})) {
+    if(addUser(lobby.users, {id: m.id, name: m.user, socket: ws})) {
       message = {action: "join", user: m.user, message: "joined lobby"}
       lobby.users.forEach(e => {
         try{
@@ -181,7 +185,7 @@ function shuffle(array: CardData[]) {
 
 function startGame(m: Message, ws: WebSocket) {
   let lobby: Lobby = getLobby(m,ws);
-  if(lobby != null && lobby.hostId == m.message){
+  if(lobby != null && lobby.hostId == m.id){
     console.log("starting game in " + m.lobbyname);
     // first shuffle
     shuffle(lobby.deck);

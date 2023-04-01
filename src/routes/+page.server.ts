@@ -29,10 +29,10 @@ export const actions = {
         user: String(data.get('username')),
         lobbyname: String(data.get('lobbyname')),
         password: String(data.get('password')),
-        message: crypto.randomUUID(),
+        id: crypto.randomUUID(),
     }
     //cookies.set('message', JSON.stringify(message));
-    cookies.set('message', JSON.stringify(message), {maxAge: 60*60});
+    cookies.set('message', JSON.stringify(message), {maxAge: 60*60, path: '/game'});
     // lobby will expire after 5 seconds as its only used for error
     cookies.set('lobbyname', String(message.lobbyname), {maxAge: 5});
     let success: boolean;

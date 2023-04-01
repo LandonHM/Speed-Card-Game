@@ -11,19 +11,19 @@
     let connected: boolean = false;
     let conerror: boolean = false;
     let socket: WebSocket;
-    let user: String;
-    let password: String;
-    let uuid: String;
-    let lobbyname: String|undefined = data.lobby;
+    let user: string;
+    let password: string;
+    let uuid: string;
+    let lobbyname: string|undefined = data.lobby;
     let waiting: boolean = false;
     let validLobby: boolean = true;
-    let m: Message = {action: "ping", user: "", lobbyname: lobbyname == undefined ? message.lobbyname : lobbyname, password: "", message: ""};
+    let m: Message = {action: "ping", user: "", lobbyname: lobbyname == undefined ? message.lobbyname : lobbyname, password: "", id: ""};
     let passwordReq: boolean = true;
 
     // Data for game function
     let win: boolean = false;
     let lost: boolean = false;
-    let winner: String;
+    let winner: string;
     let users: string[];
     let solution: CardData[];
     let time: number;
@@ -34,23 +34,23 @@
         socket = new WebSocket("wss://kanji.help:1400");
         //socket = new WebSocket("ws://localhost:1400");
         socket.onmessage = (sm) => {
-            let m: ServerMessage = JSON.parse(String(sm.data));
+            let m: ServerMessage = JSON.parse((sm.data));
             //console.log(m);
             switch(m.action) {
                 // Lists lobby members
-                case('userlist'): waiting = false; connected = true; users = JSON.parse(String(m.message)); users = users; break;
-                case('join'): users.push(String(m.user)); users = users; break;
+                case('userlist'): waiting = false; connected = true; users = JSON.parse(m.message); users = users; break;
+                case('join'): users.push(m.user); users = users; break;
                 // Game returnds
                 case('win'): 
-                    console.log(win);
-                    console.log(m.message);
+                    //console.log(win);
+                    //console.log(m.message);
                     time = Number(m.message);
                     if(!win) { lost = true; winner = m.user }; 
                     break;
-                case('start'): solution = JSON.parse(String(m.message)); started = true; win = false; break;
+                case('start'): solution = JSON.parse(m.message); started = true; win = false; break;
                 // Host connting returns
-                case('hostreconnect'): users = JSON.parse(String(m.message)); host = true; connected = true; waiting = false; break;
-                case('created'): users = [String(user)]; host = true; connected = true; waiting = false;  break;
+                case('hostreconnect'): users = JSON.parse(m.message); host = true; connected = true; waiting = false; break;
+                case('created'): users = [user]; host = true; connected = true; waiting = false;  break;
                 // Incorrect password
                 case('error'): 
                 case('conerr'): conerror = true; waiting = false; connected = false; break;
@@ -67,7 +67,7 @@
             console.log('message is not undefined');
             user = message.user;
             password = message.password;
-            uuid = message.message;
+            uuid = message.id;
             lobbyname = message.lobbyname;
             waiting = true;
             if(message.action == "pinghost") {
@@ -103,12 +103,12 @@
     }
 
     function sendWin() {
-        m = {action: "win", user: user, password: password, lobbyname: lobbyname!, message: "win!"};
+        m = {action: "win", user: user, password: password, lobbyname: lobbyname!, id: uuid};
         sendM(socket, m);
     }
 
     function startGame() {
-        m = {action: "start", user: user, password: password, lobbyname: lobbyname!, message: uuid};
+        m = {action: "start", user: user, password: password, lobbyname: lobbyname!, id: uuid};
         sendM(socket, m);
         // start game here
     }
