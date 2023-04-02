@@ -202,6 +202,18 @@ function startGame(m: Message, ws: WebSocket) {
   }
 }
 
+function reset(m: Message, ws: WebSocket) {
+  let lobby: Lobby = getLobby(m,ws);
+  if(lobby != null && lobby.hostId == m.id){
+    console.log("resetting " + m.lobbyname);
+    let message: ServerMessage = {action: "reset", user: m.user, message: 'resetting'};
+    sendLobbyMessage(lobby.users, message);
+    lobby.started = false;
+  } else {
+    console.log(m.user + " failed to reset lobby " + m.lobbyname);
+  }
+}
+
 function pingLobby(m: Message, ws: WebSocket) {
   let lobby: Lobby = lobbies.get(m.lobbyname);
   console.log("ping started");
@@ -287,6 +299,7 @@ wss.on('connection', function connection(ws: WebSocket) {
        case("win"): sendWin(m,ws); break;
        case("debug"): printDebug(m,ws); break;
        case("start"): startGame(m,ws); break;
+       case("reset"): reset(m,ws); break;
     }
   });
 

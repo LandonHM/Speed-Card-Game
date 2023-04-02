@@ -4,6 +4,8 @@
   export let form: ActionData;
   //console.log(form);
   //console.log(data);
+  let lobbyname = true;
+  let password = false;
 </script>
 
 <div class='center top'>
@@ -15,14 +17,18 @@
       <input placeholder="Username" name="username" type="text">
       <label>
       Use random lobby name.
-      <input name="hasName" type="checkbox">
+      <input name="hasName" type="checkbox" bind:checked={lobbyname}>
       </label>
-      <input placeholder="Lobby name" name="lobbyname" type="text">
+      {#if !lobbyname}
+        <input placeholder="Lobby name" name="lobbyname" type="text">
+      {/if}
       <label>
       Password protected.
-      <input name="hasPass" type="checkbox">
+      <input name="hasPass" type="checkbox" bind:checked={password}>
       </label>
-      <input placeholder="Password" name="password" type="password">
+      {#if password}
+        <input placeholder="Password" name="password" type="password">
+      {/if}
       <button>Host</button>
     </div>
   </form>
@@ -58,8 +64,6 @@
   .box {
     display: inline-grid;
     background-color: rgb(48, 119, 119);
-    flex-direction: column;
-    flex-wrap: nowrap;
     justify-content: center;
     border-radius: 10px;
   }

@@ -41,6 +41,7 @@
                 case('userlist'): waiting = false; connected = true; users = JSON.parse(m.message); users = users; break;
                 case('join'): users.push(m.user); users = users; break;
                 // Game returnds
+                case('reset'): win = false; lost = false; started = false; break;
                 case('win'): 
                     //console.log(win);
                     //console.log(m.message);
@@ -98,6 +99,9 @@
         }
     }
 
+    let over: boolean; 
+    $: over = win || lost;
+
     function wingame() {
         win = true;
     }
@@ -107,27 +111,31 @@
         sendM(socket, m);
     }
 
+    function backToLobby() {
+        m = {action: "reset", user: user, password: password, lobbyname: lobbyname!, id: uuid};
+        sendM(socket, m);
+    }
+
     function startGame() {
         m = {action: "start", user: user, password: password, lobbyname: lobbyname!, id: uuid};
-        win = false; lost = false;
+        win = false; lost = false; 
         sendM(socket, m);
     }
     
 </script>
 
 {#if !validLobby}
-    <div class='center' style="padding-top: 20px">
+    <div class='center top'>
         <div style="display: flex; flex-direction: column;">
             <h2 style="text-align:center">Could not find lobby "{lobbyname}"</h2>
             <a href="/">Click here to go to home to host your own lobby!</a>
         </div>
     </div>
 {:else if waiting}
-    <h2 class='center' style="padding-top: 20px"> Attempting to reconnect you.</h2>
+    <h2 class='center top'> Attempting to reconnect you.</h2>
     <h2 class='center' > If this is taking a long time there is likely a bug. </h2>
     <h2 class='center' > Try clearing cookies on this site and reconnecting or making a new lobby</h2>
 {:else if !host && !connected}
-    
     <div class='center top'>
         <h2>Connect to lobby {lobbyname}</h2>
     </div>
@@ -147,62 +155,81 @@
     {/if}
 {:else}
     {#if !started}
-        <div class='center'>
-            <div class='box'>
+        <div class='center top'>
+            <div class='box' style="margin-right: 10px">
+                <h2 style="margin: 20px 5px 5px 5px; text-align: center;">How to play</h2>
+                <p style='max-width: 250px; margin: 5px;'>
+                    The game is made up of three components. The left (or top if screen is portrait mode) is the solution,
+                    The middle is your 'deck', and the right (or bottom in portrait) is your board.
+                    The goal of the game is to make your board match the solution as fast as possible.
+                    Your deck is made up of cards which have two sides.
+                    You interact with the deck by dragging the cards from your deck onto the places on your board.
+                    The cards regardless of where they are can be double clicked (or doubled tapped) to flip then and show their other side.
+                    Once cards are on the board you can drag them on top of each other to swap their places.
+                </p>
+            </div>
+            <div class='lobbybox'>
                 <div class='lobbydiv'>
                     <h2>Users Connected:</h2>
                 </div>
-                <div class='lobbydiv'>
+                <div class='lobbydiv lobby'>
                     {#each users as user}
-                        <p>{user}</p>
+                        <p class='user'>{user}</p>
                     {/each}
                 </div>
                 {#if host} 
-                    <button on:click={startGame}> Start game</button>
+                    <div class='center'>
+                        <button on:click={startGame}> Start game</button>
+                    </div>
                 {/if}
             </div>
         </div>
     {:else}
-        {#if win}
-        <div class="row">
-            <p1>YOU WON IN {time / 1000} SECONDS</p1>
-            {#if host}
-                <div>
-                    <button on:click={startGame}>New Game.</button>
+        {#if over}
+            <div class='center top'>
+                <div class='box'>
+                    {#if win}
+                        <h2 style="padding: 10px">YOU WON IN {time / 1000} SECONDS</h2>
+                    {:else}
+                        <h2 style="padding: 10px">YOU LOST, {winner} WON IN {time / 1000} SECONDS</h2> 
+                    {/if}
+                    {#if host}
+                        <div class='center'>
+                            <button on:click={backToLobby} style='padding: 5px'>Back to lobby</button>
+                        </div>
+                    {/if}
                 </div>
-            {/if}
-        </div>
-        {:else if lost}
-        <div class="row">
-            <p1>YOU LOST {winner} WON IN {time / 1000} SECONDS</p1> 
-            {#if host}
-                <div>
-                    <button on:click={startGame}>New Game.</button>
-                </div>
-            {/if}
-        </div>
+            </div>
         {:else}
-            <div class='game'>
-                <Game solution={solution} bind:win />
+            <div class="wrapper">
+                <div class='game'>
+                    <Game solution={solution} bind:win />
+                </div>
             </div>
         {/if}
     {/if}
 {/if}
 
 <style>
+  .wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 50%;
+  }
 
   .game {
     display: flex;
     flex-direction: column;
     gap: 10px;
-    background-color: yellow;
+    /* background-color: yellow; */
     justify-content: center;
     align-items: center;
   }
 
   @media (orientation: landscape){
     .game {
-      background-color: green;
+      /* background-color: green; */
       flex-direction: row;
     }
   } 
@@ -220,10 +247,21 @@
   }
 
   .lobbydiv {
-    justify-self: left;
     padding: 5px 5px 5px 10px;
     font-size: large;
   }
+
+  .lobby {
+    max-height: 515px;
+    overflow-y: auto;
+  }
+
+  .user {
+    padding-top: 0px;
+    padding-bottom: 5px;
+    margin: 0px;
+  }
+
 
   input {
     border-radius: 10px;
@@ -236,9 +274,15 @@
   .box {
     display: inline-grid;
     background-color: rgb(48, 119, 119);
-    flex-direction: column;
-    flex-wrap: nowrap;
     justify-content: center;
+    border-radius: 10px;
+  }
+
+  .lobbybox {
+    display: grid;
+    background-color: rgb(48, 119, 119);
+    justify-content: center;
+    grid-template-rows: auto 1fr auto;
     border-radius: 10px;
   }
 
