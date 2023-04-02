@@ -14,26 +14,41 @@ export const load = (async ({ cookies }) => {
 export const actions = {
   default: async ({ cookies, request }) => {
     console.log('host called');
-    const data = await request.formData();
-    let message: Message = {
-        action: "pinghost",
-        user: String(data.get('username')),
-        lobbyname: String(data.get('lobbyname')),
-        password: String(data.get('password')),
-        id: crypto.randomUUID(),
-    }
+    let lobbyname: string;
+    let password: string;
 
-    console.log(message.user)
-    if(message.user == null){
-        console.log('nousername');
+    const data = await request.formData();
+    if(data.get('username') == '') {
+        //console.log('nousername');
         cookies.set('error', 'Error: Username must be set', {maxAge: 5});
         cookies.set('result', 'false', {maxAge: 5});
         return { success: false};
     }
+
+    if(data.get('lobbyname') == null) {
+        lobbyname = Math.random().toString(16).substring(2, 10);
+    } else {
+        lobbyname = String(data.get('lobbyname'));
+    }
+
+    if(data.get('password') == null) {
+        password = '';
+    } else {
+        password = String(data.get('password'));
+    }
+
+    let message = {
+        action: "pinghost",
+        user: (data.get('username')),
+        lobbyname: lobbyname,
+        password: password,
+        id: crypto.randomUUID(),
+    }
+
     //cookies.set('message', JSON.stringify(message));
     cookies.set('message', JSON.stringify(message), {maxAge: 60*60, path: '/game'});
     // lobby will expire after 5 seconds as its only used for error
-    cookies.set('lobbyname', String(message.lobbyname), {maxAge: 5});
+    cookies.set('lobbyname', lobbyname, {maxAge: 5});
     let success: boolean;
     try {
         // Start websocket to server then ping to see if lobby is there
@@ -57,7 +72,7 @@ export const actions = {
                 } else {
                     console.log('bye');
                     cookies.set('result', 'false', {maxAge: 5});
-                    cookies.set('error', 'Error: A Lobby with that name already exist. Please input a new lobbyname.')
+                    cookies.set('error', 'Error: A Lobby with that name already exist. Please input a new lobbyname.', {maxAge: 5})
                     socket.close()
                     resolve('false');
                 }

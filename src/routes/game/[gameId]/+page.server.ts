@@ -5,7 +5,10 @@ export const load = (async ({ cookies, params }) => {
   console.log('game load');
   try {
     message = JSON.parse(cookies.get('message')!);
-    if(  message.lobbyname != params.gameId) {
+    if( message.user == '') {
+      message.user = message.id;
+    }
+    if( message.lobbyname != params.gameId) {
       return {lobby: params.gameId};
     } else {
       return message;
