@@ -7,17 +7,8 @@ export const load = (async ({ cookies }) => {
     let result: string = cookies.get('result')!;
     if (result == 'true') {
         throw redirect(303, `/game/${cookies.get('lobbyname')}`);
-    } else if (result == 'false') {
-        return {
-            lobbyname: cookies.get('lobbyname'),
-            host: cookies.get('host'),
-            error: null
-        }
-    } else {
-        return {
-            error: "The server is down, cannot play right now. :("
-        }
     }
+    return { error : cookies.get('error')};
 }) satisfies PageServerLoad;
 
 export const actions = {
@@ -31,6 +22,14 @@ export const actions = {
         password: String(data.get('password')),
         id: crypto.randomUUID(),
     }
+
+    console.log(message.user)
+    if(message.user == null){
+        console.log('nousername');
+        cookies.set('error', 'Error: Username must be set', {maxAge: 5});
+        cookies.set('result', 'false', {maxAge: 5});
+        return { success: false};
+    }
     //cookies.set('message', JSON.stringify(message));
     cookies.set('message', JSON.stringify(message), {maxAge: 60*60, path: '/game'});
     // lobby will expire after 5 seconds as its only used for error
@@ -38,13 +37,14 @@ export const actions = {
     let success: boolean;
     try {
         // Start websocket to server then ping to see if lobby is there
-        let socket: WebSocket = new WebSocket("wss://kanji.help:1400");
-        //let socket: WebSocket = new WebSocket("ws://localhost:1400");
+        //let socket: WebSocket = new WebSocket("wss://kanji.help:1400");
+        let socket: WebSocket = new WebSocket("ws://localhost:1400");
         socket.onopen = () => socket.send(JSON.stringify(message));
         const result: string = await new Promise((resolve, _reject) => {
             // Wait for message from server
             let timeout = setTimeout(() => {
                 //console.log('basdfklj');
+                cookies.set('error', 'Error: Lobby server is currently down. Come back later.', {maxAge: 5})
                 resolve('error')
             }, 3000);
             socket.onmessage = (sm) => {
@@ -57,6 +57,7 @@ export const actions = {
                 } else {
                     console.log('bye');
                     cookies.set('result', 'false', {maxAge: 5});
+                    cookies.set('error', 'Error: A Lobby with that name already exist. Please input a new lobbyname.')
                     socket.close()
                     resolve('false');
                 }
@@ -69,6 +70,7 @@ export const actions = {
     } catch (e) {
         console.log(e);
         cookies.set('result', 'false', {maxAge: 5});
+        cookies.set('error', String(e));
         return { success: false };
     }
   }

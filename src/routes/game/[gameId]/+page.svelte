@@ -31,8 +31,8 @@
     // Websocket functionality
     onMount(async () => {
         // If there is no message, then the user needs to connect.
-        socket = new WebSocket("wss://kanji.help:1400");
-        //socket = new WebSocket("ws://localhost:1400");
+        //socket = new WebSocket("wss://kanji.help:1400");
+        socket = new WebSocket("ws://localhost:1400");
         socket.onmessage = (sm) => {
             let m: ServerMessage = JSON.parse((sm.data));
             //console.log(m);
@@ -111,53 +111,57 @@
         m = {action: "start", user: user, password: password, lobbyname: lobbyname!, id: uuid};
         win = false; lost = false;
         sendM(socket, m);
-        // start game here
     }
     
 </script>
+
 {#if !validLobby}
-<p>Lobby not found sry!</p>
-<a href="/">Click here to go to home to host your own lobby!</a>
-{:else}
-{#if waiting}
-<p> Attempting to reconnect you.</p>
+    <div class='center' style="padding-top: 20px">
+        <div style="display: flex; flex-direction: column;">
+            <h2 style="text-align:center">Could not find lobby "{lobbyname}"</h2>
+            <a href="/">Click here to go to home to host your own lobby!</a>
+        </div>
+    </div>
+{:else if waiting}
+    <h2 class='center' style="padding-top: 20px"> Attempting to reconnect you.</h2>
+    <h2 class='center' > If this is taking a long time there is likely a bug. </h2>
+    <h2 class='center' > Try clearing cookies on this site and reconnecting or making a new lobby</h2>
 {:else if !host && !connected}
-    <p>Connect plz</p>
-    <form method="POST">
-      <div class="row">
-        <label>
-        Username: 
-        <input name="username" type="text">
-        </label>
-      </div>
-      {#if passwordReq}
-      <div class="row">
-        <label>
-        Password: 
-        <input name="password" type="password">
-        </label>
-      </div>
-      {/if}
-      <div class="row">
-        <button>Connect</button>
-      </div>
-    </form>
+    
+    <div class='center top'>
+        <h2>Connect to lobby {lobbyname}</h2>
+    </div>
+    <div class='center'>
+        <form method="POST">
+            <div class='box'>
+                <input placeholder="Your username" name="username" type="text">
+                {#if passwordReq}
+                    <input placeholder="Lobby password" name="password" type="password">
+                {/if}
+                <button>Connect</button>
+            </div>
+        </form>
+    </div>
     {#if conerror}
-    <p>There was an error trying to connect you</p>
+        <h2 class='center red'> There was an error trying to connect you</h2>
     {/if}
 {:else}
     {#if !started}
-        <div>
-            <h2>Uesrs Conncete:</h2>
+        <div class='center'>
+            <div class='box'>
+                <div class='lobbydiv'>
+                    <h2>Users Connected:</h2>
+                </div>
+                <div class='lobbydiv'>
+                    {#each users as user}
+                        <p>{user}</p>
+                    {/each}
+                </div>
+                {#if host} 
+                    <button on:click={startGame}> Start game</button>
+                {/if}
+            </div>
         </div>
-        <div>
-        {#each users as user}
-            <p>{user}</p>
-        {/each}
-        </div>
-        {#if host} 
-            <button on:click={startGame}> Start game</button>
-        {/if}
     {:else}
         {#if win}
         <div class="row">
@@ -178,8 +182,70 @@
             {/if}
         </div>
         {:else}
-        <Game solution={solution} bind:win />
+            <div class='game'>
+                <Game solution={solution} bind:win />
+            </div>
         {/if}
     {/if}
 {/if}
-{/if}
+
+<style>
+
+  .game {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    background-color: yellow;
+    justify-content: center;
+    align-items: center;
+  }
+
+  @media (orientation: landscape){
+    .game {
+      background-color: green;
+      flex-direction: row;
+    }
+  } 
+  
+  a{
+    color: aqua;
+  }
+
+  .red{
+    color: rgb(255, 4, 4);
+  }
+
+  .top {
+    padding-top: 20px;
+  }
+
+  .lobbydiv {
+    justify-self: left;
+    padding: 5px 5px 5px 10px;
+    font-size: large;
+  }
+
+  input {
+    border-radius: 10px;
+    text-align: center;
+    font-size: large;
+    margin: 5px 5px;
+    padding: 5px;
+  }
+
+  .box {
+    display: inline-grid;
+    background-color: rgb(48, 119, 119);
+    flex-direction: column;
+    flex-wrap: nowrap;
+    justify-content: center;
+    border-radius: 10px;
+  }
+
+  button {
+    font-size: large;
+    margin: 10px 5px;
+    border-radius: 10px;
+    align-self: center;
+  }
+</style>

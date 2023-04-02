@@ -68,7 +68,7 @@
 </script>
 
 
-<div class="row">
+<div class="center">
   <div class="grid-container">
     {#each cards as cardData,i}
     <CardPlace class="grid-item" id={i} bind:cardData bind:toCard bind:moveCardId on:flipped={checkWin} />
@@ -91,7 +91,7 @@
 
 .grid-container :global(.grid-item){
   /* background-color: rgba(255, 255, 255, 0.8); */
-  margin: 5px 10px;
+  margin: 2px;
   place-self: center;
   font-size: 30px;
   text-align: center;

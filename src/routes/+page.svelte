@@ -6,54 +6,69 @@
   //console.log(data);
 </script>
 
-<div class='box'>
-  <div class='row'>
-    <form method="POST">
-      <div class="row">
-        <label>
-        Username: 
-        <input name="username" type="text">
-        </label>
-      </div>
-      <div class="row">
-        <label>
-        Use random lobby name.
-        <input name="hasName" type="checkbox">
-        </label>
-      </div>
-      <div class="row">
-        <label>
-        Lobby name: 
-        <input name="lobbyname" type="text">
-        </label>
-      </div>
-      <div class="row">
-        <label>
-        Password protected.
-        <input name="hasPass" type="checkbox">
-        </label>
-      </div>
-      <div class="row">
-        <label>
-        Password: 
-        <input name="password" type="password">
-        </label>
-      </div>
-      <div class="row">
-        <button>Host</button>
-      </div>
-    </form>
-  </div>
+<div class='center top'>
+  <h2>Host a lobby</h2>
+</div>
+<div class='center'>
+  <form method="POST">
+    <div class='box'>
+      <input placeholder="Username" name="username" type="text">
+      <label>
+      Use random lobby name.
+      <input name="hasName" type="checkbox">
+      </label>
+      <input placeholder="Lobby name" name="lobbyname" type="text">
+      <label>
+      Password protected.
+      <input name="hasPass" type="checkbox">
+      </label>
+      <input placeholder="Password" name="password" type="password">
+      <button>Host</button>
+    </div>
+  </form>
 </div>
 
-{#if !form?.success && data.lobbyname}
-<p>{data.lobbyname} was already taken.</p>
+{#if !form?.success && data.error}
+<h2 class='center red'>{data.error}</h2>
 {/if}
 
 <style>
-  .box {
-    display: inline;
-    background-color: aqua;
-    width: auto;
+  .red{
+    color: rgb(255, 4, 4);
   }
+
+  .top {
+    padding-top: 20px;
+  }
+
+  label {
+    justify-self: left;
+    padding: 5px 5px 5px 10px;
+    font-size: large;
+  }
+
+  input {
+    border-radius: 10px;
+    text-align: center;
+    font-size: large;
+    margin: 5px 5px;
+    padding: 5px;
+  }
+
+  .box {
+    display: inline-grid;
+    background-color: rgb(48, 119, 119);
+    flex-direction: column;
+    flex-wrap: nowrap;
+    justify-content: center;
+    border-radius: 10px;
+  }
+
+  button {
+    font-size: large;
+    margin: 10px 5px;
+    border-radius: 10px;
+    align-self: center;
+  }
+
 </style>

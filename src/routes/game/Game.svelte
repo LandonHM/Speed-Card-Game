@@ -58,16 +58,13 @@
 
 </script>
 {#if !win}
-<Solution cards={solution}/>
-<Deck cards={deck} />
-<Board bind:cards bind:deck solution={solution} bind:win/>
+  <Solution cards={solution}/>
+  <Deck cards={deck} />
+  <Board bind:cards bind:deck solution={solution} bind:win/>
 {:else}
-<!--<div class="row" style="padding-top: 150px">
-  <Confetti infinite delay={[0, 1500]} />
-</div> -->
-<h1>
-  すごい
-</h1>
+  <h1>
+    すごい
+  </h1>
 {/if}
 
 <style>

@@ -4,7 +4,7 @@
 
 </script>
 
-<div class="row">
+<div class="center">
   <div class="grid-container">
     {#each cards as {front,back,flipped}}
     <div class="grid-item">
