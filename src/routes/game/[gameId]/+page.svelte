@@ -20,6 +20,7 @@
     let validLobby: boolean = true;
     let m: Message = {action: "ping", user: "", lobbyname: lobbyname == undefined ? message.lobbyname : lobbyname, password: "", id: ""};
     let passwordReq: boolean = true;
+    let url: string;
 
     // Data for game function
     let win: boolean = false;
@@ -31,6 +32,7 @@
 
     // Websocket functionality
     onMount(async () => {
+        url = window.location.href;
         // If there is no message, then the user needs to connect.
         if(dev) {
             socket = new WebSocket("ws://localhost:1400");
@@ -126,6 +128,10 @@
         sendM(socket, m);
     }
     
+    function copyLink() {
+        navigator.clipboard.writeText(url);
+    }
+    
 </script>
 
 {#if !validLobby}
@@ -159,10 +165,16 @@
     {/if}
 {:else}
     {#if !started}
-        <div class='center top'>
+        <div class='center top' >
+            <input type="text" readonly value={url} on:click|preventDefault={copyLink}>
+        </div>
+        <div class='center' style='margin-top:1px'>
+            <p style='margin: 0px'>Send this link for others to connect. (If you click it will automatically copy)</p>
+        </div>
+        <div class='center'>
             <div class='box' style="margin-right: 10px">
                 <h2 style="margin: 20px 5px 5px 5px; text-align: center;">How to play</h2>
-                <p style='max-width: 250px; margin: 5px;'>
+                <p style='max-width: 250px; margin: 5px; max-height: 80vh; max-height: 80dvh; overflow-y: auto;'>
                     The game is made up of three components. The left (or top if screen is portrait mode) is the solution,
                     The middle is your 'deck', and the right (or bottom in portrait) is your board.
                     The goal of the game is to make your board match the solution as fast as possible.

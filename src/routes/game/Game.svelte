@@ -3,7 +3,6 @@
   import Board from './Board.svelte'
   import Deck from './Deck.svelte'
   import Solution from './Solution.svelte';
-  //import { Confetti } from "svelte-confetti";
 
 
   // Deck start full
@@ -57,17 +56,7 @@
   export let win: boolean;
 
 </script>
-{#if !win}
-  <Solution cards={solution}/>
-  <Deck cards={deck} />
-  <Board bind:cards bind:deck solution={solution} bind:win/>
-{:else}
-  <h1>
-    すごい
-  </h1>
-{/if}
 
-<style>
-
-
-</style>
+<Solution cards={solution}/>
+<Deck cards={deck} />
+<Board bind:cards bind:deck solution={solution} bind:win/>
