@@ -1,6 +1,7 @@
 import type { PageServerLoad, Actions } from './$types';
 import { redirect } from '@sveltejs/kit';
 import { WebSocket } from 'ws';
+import { dev } from '$app/environment';
 
 export const load = (async ({ cookies }) => {
     console.log("load called");
@@ -52,8 +53,14 @@ export const actions = {
     let success: boolean;
     try {
         // Start websocket to server then ping to see if lobby is there
-        let socket: WebSocket = new WebSocket("wss://kanji.help:1400");
-        //let socket: WebSocket = new WebSocket("ws://localhost:1400");
+        let socket: WebSocket;
+        if(dev) {
+            console.log('in dev')
+            socket = new WebSocket("ws://localhost:1400");
+        } else {
+            console.log('in prod')
+            socket = new WebSocket("wss://kanji.help:1400");
+        }
         socket.onopen = () => socket.send(JSON.stringify(message));
         const result: string = await new Promise((resolve, _reject) => {
             // Wait for message from server

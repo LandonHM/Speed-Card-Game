@@ -2,6 +2,7 @@
     import Game from '../Game.svelte';
     import { onMount } from 'svelte';
     import type { PageData } from "./$types";
+    import { dev } from '$app/environment';
 
     export let data: PageData;
     // Data for websocket communcation and setup
@@ -31,8 +32,11 @@
     // Websocket functionality
     onMount(async () => {
         // If there is no message, then the user needs to connect.
-        socket = new WebSocket("wss://kanji.help:1400");
-        //socket = new WebSocket("ws://localhost:1400");
+        if(dev) {
+            socket = new WebSocket("ws://localhost:1400");
+        } else {
+            socket = new WebSocket("wss://kanji.help:1400");
+        }
         socket.onmessage = (sm) => {
             let m: ServerMessage = JSON.parse((sm.data));
             //console.log(m);
