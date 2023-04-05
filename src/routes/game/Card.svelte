@@ -3,6 +3,7 @@
   import { createEventDispatcher } from 'svelte';
 
   export let cardData: CardData;
+  export let currentCard: number;
   const dispatch = createEventDispatcher();
 
   function toggle(e: MouseEvent){
@@ -13,8 +14,15 @@
   }
 
   function editEvent(ev: any) {
-    ev.dataTransfer.clearData();
-    ev.dataTransfer.setData("text/plain",cardData.id);
+    console.log('edite');
+    currentCard = cardData.id;
+    //ev.dataTransfer.clearData();
+    //ev.dataTransfer.setData("text/plain",cardData.id);
+  }
+
+  function touched(ev: any) {
+    console.log('toucehd');
+    currentCard = cardData.id;
   }
 
   function dragEvent(ev: DragEvent) {
@@ -29,7 +37,7 @@
 
 </script>
 
-<div draggable="true" on:drag={dragEvent} on:dragstart={editEvent} on:dblclick={toggle} >
+<div draggable="true" on:drag={dragEvent} on:dragstart={editEvent} on:dblclick={toggle} on:touchstart|preventDefault|stopPropagation={touched}>
   {#if !cardData.flipped}
   <img src={"/cards/" + cardData.front + ".png"} draggable="false" alt="">
   {:else}
@@ -42,6 +50,7 @@
     object-fit:fill;
     width: 100%;
     height: 100%;
+    touch-action: none;
   }
 
   div {

@@ -3,6 +3,7 @@
   import Card from './Card.svelte'
 
   export let cards: CardData[] = [];
+  export let currentCard: number;
 
 </script>
 
@@ -10,7 +11,7 @@
   {#if cards.length > 0}
     {#each cards as cardData}
     <div class="card-box">
-      <Card bind:cardData />
+      <Card bind:cardData bind:currentCard />
     </div>
     {/each}
   {:else}

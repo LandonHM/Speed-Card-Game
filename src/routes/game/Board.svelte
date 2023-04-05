@@ -6,6 +6,7 @@
   export let cards: (CardData|null)[];
   export let solution: CardData[];
   export let win: boolean;
+  export let currentCard: number;
 
   let moveCardId: number;
   let toCard: number = -1;
@@ -71,7 +72,7 @@
 <div class="center">
   <div class="grid-container">
     {#each cards as cardData,i}
-    <CardPlace class="grid-item" id={i} bind:cardData bind:toCard bind:moveCardId on:flipped={checkWin} />
+    <CardPlace class="grid-item" id={i} bind:cardData bind:toCard bind:moveCardId bind:currentCard on:flipped={checkWin} />
     {/each}
   </div>
 </div>

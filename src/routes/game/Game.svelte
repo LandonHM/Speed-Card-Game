@@ -54,9 +54,10 @@
   }
 
   export let win: boolean;
+  let currentCard: number;
 
 </script>
 
 <Solution cards={solution}/>
-<Deck cards={deck} />
-<Board bind:cards bind:deck solution={solution} bind:win/>
+<Deck cards={deck} bind:currentCard />
+<Board bind:cards bind:deck solution={solution} bind:currentCard bind:win/>
