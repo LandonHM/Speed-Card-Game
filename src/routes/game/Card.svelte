@@ -14,14 +14,14 @@
   }
 
   function editEvent(ev: any) {
-    console.log('edite');
+    //console.log('edite');
     currentCard = cardData.id;
     //ev.dataTransfer.clearData();
     //ev.dataTransfer.setData("text/plain",cardData.id);
   }
 
   function touched(ev: any) {
-    console.log('toucehd');
+    //console.log('toucehd');
     currentCard = cardData.id;
   }
 
@@ -37,7 +37,7 @@
 
 </script>
 
-<div draggable="true" on:drag={dragEvent} on:dragstart={editEvent} on:dblclick={toggle} on:touchstart|preventDefault|stopPropagation={touched}>
+<div draggable="true" on:drag={dragEvent} on:dragstart={editEvent} on:dblclick={toggle} on:touchstart={touched} >
   {#if !cardData.flipped}
   <img src={"/cards/" + cardData.front + ".png"} draggable="false" alt="">
   {:else}

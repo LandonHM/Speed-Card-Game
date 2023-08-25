@@ -37,7 +37,7 @@
         if(dev) {
             socket = new WebSocket("ws://localhost:1400");
         } else {
-            socket = new WebSocket("wss://kanji.help:1400");
+            socket = new WebSocket("wss://lmol.xyz:1400");
         }
         socket.onmessage = (sm) => {
             let m: ServerMessage = JSON.parse((sm.data));

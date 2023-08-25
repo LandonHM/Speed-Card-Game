@@ -12,7 +12,9 @@
   }
   
   function dropped(ev: any){
-    console.log('dropped');
+    //console.log("place: " + id);
+    //console.log("card: " + currentCard);
+    //console.log('dropped');
     moveCardId = currentCard;
     toCard = id;
   }
@@ -20,11 +22,11 @@
 </script>
 
 {#if cardData}
-  <div class={$$props.class + " card"} on:dragover={dragged} on:drop={dropped}>
+  <div class={$$props.class + " card"} on:dragover={dragged} on:drop={dropped} on:touchend={dropped}>
     <Card bind:cardData on:flipped bind:currentCard />
   </div>
 {:else}
-  <div class={$$props.class + " placeholder"} on:dragover={dragged} on:drop={dropped} on:touchend|preventDefault|stopPropagation={dragged}>
+  <div class={$$props.class + " placeholder"} on:dragover={dragged} on:drop={dropped} on:touchend={dropped}>
     <p>{id}</p>
   </div>
 {/if}
@@ -44,6 +46,7 @@
     -khtml-user-select: none;
     -moz-user-select: none;
     -ms-user-select: none;
+    touch-action: none;
     user-select: none;
     border-radius: 100%;
     border: 3px dashed black;

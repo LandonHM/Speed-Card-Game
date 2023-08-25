@@ -59,7 +59,7 @@ export const actions = {
             socket = new WebSocket("ws://localhost:1400");
         } else {
             console.log('in prod')
-            socket = new WebSocket("wss://kanji.help:1400");
+            socket = new WebSocket("wss://lmol.xyz:1400");
         }
         socket.onopen = () => socket.send(JSON.stringify(message));
         const result: string = await new Promise((resolve, _reject) => {
